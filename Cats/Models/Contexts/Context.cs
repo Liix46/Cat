@@ -11,8 +11,8 @@ namespace Cats.Models.Contexts
 
         public Context(DbContextOptions<Context> options) : base(options)
         {
-            Database.EnsureDeleted();
-            Database.EnsureCreated();
+            //Database.EnsureDeleted();
+            //Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -46,9 +46,6 @@ namespace Cats.Models
         public int ModelId { get; set; }
         public Model? Model { get; set; }
 
-        //public string Cab { get; set; }
-        //public string TransmissionModel { get; set; }
-        //public string DriverPosition { get; set; }
 
     }
 }

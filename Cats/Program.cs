@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 
-// получаем строку подключения из файла конфигурации
+// get connection string from config file
 string connection = builder.Configuration.GetConnectionString("MyDbConnection");
 
-// добавляем контекст CategoryContext в качестве сервиса в приложение
+// add Context as a service to the application
 builder.Services.AddDbContext<Context>(options => options.UseSqlServer(connection));
 
 // Add services to the container.

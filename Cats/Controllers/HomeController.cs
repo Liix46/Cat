@@ -25,16 +25,20 @@ public class HomeController : Controller
     {
         AngleSharp.IConfiguration config = Configuration.Default.WithDefaultLoader();
         IBrowsingContext context = BrowsingContext.New(config);
+
         if (!_context.Models.Any())
         {
             
             string address = "https://www.ilcats.ru/toyota/?function=getModels&language=en&market=EU";
-            
+
+            // get page with models
             IDocument document = await context.OpenAsync(address);
 
+            //get div with model elements
             string cellSelector = "div.List div.List";
             IHtmlCollection<IElement> cells = document.QuerySelectorAll(cellSelector);
 
+            // get menu - information about model and country
             string menuSelector = "#MainMenu li";
             var menu = document.QuerySelectorAll(menuSelector);
 
@@ -48,15 +52,16 @@ public class HomeController : Controller
 
 
             var models = new List<Model>();
+            // get rows model
             foreach (IHtmlCollection<IElement> child in children)
             {
-                //var e = child.Select(x => x.HasAttribute("Header"));
                 var header = child.Where(x => x.ClassName == "Header").FirstOrDefault();
 
                 var lists = child.Where(x => x.ClassName == "List ");
 
                 if (lists != null)
                 {
+                    // get data current model
                     foreach (var list in lists)
                     {
                         var element = list.Children.FirstOrDefault();
@@ -87,108 +92,116 @@ public class HomeController : Controller
                             model.ShortComplactations = shortComplactations.TextContent;
                         }
 
+                        //add list
                         models.Add(model);
                     }
                 }
             }
+            //add dbset
             await _context.Models.AddRangeAsync(models);
             await _context.SaveChangesAsync();
         }
 
-        string addressComplectation = "https://www.ilcats.ru/toyota/?function=getComplectations&market=EU&model=281220&startDate=198210&endDate=198610&language=en";
-        IDocument documentComplectation = await context.OpenAsync(addressComplectation);
-
-        //string tableSelector = "#Body";
-        //IHtmlCollection<IElement> htmlElement = documentComplectation.QuerySelectorAll(tableSelector);
-        string tableSelector = "tbody";
-        var htmlElement = documentComplectation.QuerySelectorAll(tableSelector).FirstOrDefault();
-
-        var complactationList = htmlElement.Children.Skip(1);
-
-        string mainMenuSelector = "#MainMenu";
-        var mainMenuElement = documentComplectation.QuerySelectorAll(mainMenuSelector).FirstOrDefault();
-        var currentModel = new Model();
-        if (mainMenuElement != null)
+        //check - presence of elements
+        if (!_context.Complectations.Any())
         {
-            var lastChild = mainMenuElement.Children.LastOrDefault();
-            var text = lastChild.TextContent.Substring(lastChild.TextContent.IndexOf('(') + 1);
-            text = text.TrimEnd(')');
+            string addressComplectation = "https://www.ilcats.ru/toyota/?function=getComplectations&market=EU&model=281220&startDate=198210&endDate=198610&language=en";
+            IDocument documentComplectation = await context.OpenAsync(addressComplectation);
 
-            currentModel = _context.Models.FirstOrDefault(x => x.ModelCode == text);
-        }
+            string tableSelector = "tbody";
+            var htmlElement = documentComplectation.QuerySelectorAll(tableSelector).FirstOrDefault();
 
-        List<Complectation> complectations = new List<Complectation>();
+            var complactationList = htmlElement.Children.Skip(1);
 
-        foreach (var complactation in complactationList)
-        {
-            var newComplect = new Complectation();
-            foreach (var item in complactation.Children)
+            //get menu item
+            string mainMenuSelector = "#MainMenu";
+            var mainMenuElement = documentComplectation.QuerySelectorAll(mainMenuSelector).FirstOrDefault();
+            var currentModel = new Model();
+            if (mainMenuElement != null)
             {
                 
-                var modelCode = item.Children.FirstOrDefault(x => x.ClassName == "modelCode");
-                if (modelCode != null)
-                {
-                    newComplect.Name = modelCode.TextContent;
-                }
+                var lastChild = mainMenuElement.Children.LastOrDefault();
+                var text = lastChild.TextContent.Substring(lastChild.TextContent.IndexOf('(') + 1);
+                text = text.TrimEnd(')'); // id model
 
-                var dateRange = item.Children.FirstOrDefault(x => x.ClassName == "dateRange");
-                if (dateRange != null)
-                {
-                    newComplect.Date = dateRange.TextContent;
-                }
-
-                var engine = item.Children.FirstOrDefault(x => x.ClassName == "01");
-                if (engine != null)
-                {
-                    newComplect.Engine_1 = engine.TextContent;
-                }
-                var body = item.Children.FirstOrDefault(x => x.ClassName == "03");
-                if (body != null)
-                {
-                    newComplect.Body = body.TextContent;
-                }
-                var grade = item.Children.FirstOrDefault(x => x.ClassName == "04");
-                if (grade != null)
-                {
-                    newComplect.Grade = grade.TextContent;
-                }
-                var transmission = item.Children.FirstOrDefault(x => x.ClassName == "05");
-                if (transmission != null)
-                {
-                    newComplect.Transmission = transmission.TextContent;
-                }
-                var gearShiftType = item.Children.FirstOrDefault(x => x.ClassName == "06");
-                if (gearShiftType != null)
-                {
-                    newComplect.GearShiftType = gearShiftType.TextContent;
-                }
-                var driverPosition = item.Children.FirstOrDefault(x => x.ClassName == "07");
-                if (driverPosition != null)
-                {
-                    newComplect.DriverPosition = driverPosition.TextContent;
-                }
-                var doors = item.Children.FirstOrDefault(x => x.ClassName == "08");
-                if (doors != null)
-                {
-                    newComplect.Doors = doors.TextContent;
-                }
-                var destination_1 = item.Children.FirstOrDefault(x => x.ClassName == "09");
-                if (destination_1 != null)
-                {
-                    newComplect.Destination_1 = destination_1.TextContent;
-                }
+                currentModel = _context.Models.FirstOrDefault(x => x.ModelCode == text); //find model into db
             }
-            if (currentModel != null)
+
+            List<Complectation> complectations = new List<Complectation>();
+
+            foreach (var complactation in complactationList)
             {
-                newComplect.ModelId = currentModel.Id;
+                var newComplect = new Complectation();
+                foreach (var item in complactation.Children)
+                {
+                    ///get current data complactation
+                    var modelCode = item.Children.FirstOrDefault(x => x.ClassName == "modelCode");
+                    if (modelCode != null)
+                    {
+                        newComplect.Name = modelCode.TextContent;
+                    }
+
+                    var dateRange = item.Children.FirstOrDefault(x => x.ClassName == "dateRange");
+                    if (dateRange != null)
+                    {
+                        newComplect.Date = dateRange.TextContent;
+                    }
+
+                    var engine = item.Children.FirstOrDefault(x => x.ClassName == "01");
+                    if (engine != null)
+                    {
+                        newComplect.Engine_1 = engine.TextContent;
+                    }
+                    var body = item.Children.FirstOrDefault(x => x.ClassName == "03");
+                    if (body != null)
+                    {
+                        newComplect.Body = body.TextContent;
+                    }
+                    var grade = item.Children.FirstOrDefault(x => x.ClassName == "04");
+                    if (grade != null)
+                    {
+                        newComplect.Grade = grade.TextContent;
+                    }
+                    var transmission = item.Children.FirstOrDefault(x => x.ClassName == "05");
+                    if (transmission != null)
+                    {
+                        newComplect.Transmission = transmission.TextContent;
+                    }
+                    var gearShiftType = item.Children.FirstOrDefault(x => x.ClassName == "06");
+                    if (gearShiftType != null)
+                    {
+                        newComplect.GearShiftType = gearShiftType.TextContent;
+                    }
+                    var driverPosition = item.Children.FirstOrDefault(x => x.ClassName == "07");
+                    if (driverPosition != null)
+                    {
+                        newComplect.DriverPosition = driverPosition.TextContent;
+                    }
+                    var doors = item.Children.FirstOrDefault(x => x.ClassName == "08");
+                    if (doors != null)
+                    {
+                        newComplect.Doors = doors.TextContent;
+                    }
+                    var destination_1 = item.Children.FirstOrDefault(x => x.ClassName == "09");
+                    if (destination_1 != null)
+                    {
+                        newComplect.Destination_1 = destination_1.TextContent;
+                    }
+                }
+                if (currentModel != null)
+                {
+                    // binding to car model
+                    newComplect.ModelId = currentModel.Id;
+                }
+
+                complectations.Add(newComplect);
             }
-            
-            complectations.Add(newComplect);
+
+
+            await _context.Complectations.AddRangeAsync(complectations);
+            await _context.SaveChangesAsync();
         }
-
-
-        await _context.Complectations.AddRangeAsync(complectations);
-        await _context.SaveChangesAsync();
+        
 
         return View();
     }
