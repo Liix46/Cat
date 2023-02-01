@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1705.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cats", "Cats\Cats.csproj", "{D36A9260-01BB-48A1-97C0-295AAD5F667C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A0BB2165-7E1D-4AED-8515-DACDBA782BBB}"
+	ProjectSection(SolutionItems) = preProject
+		README.txt = README.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D36A9260-01BB-48A1-97C0-295AAD5F667C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D36A9260-01BB-48A1-97C0-295AAD5F667C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D36A9260-01BB-48A1-97C0-295AAD5F667C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D36A9260-01BB-48A1-97C0-295AAD5F667C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E024C207-5A19-45EA-B4FC-8568D429E651}
+	EndGlobalSection
+EndGlobal
