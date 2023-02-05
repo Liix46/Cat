@@ -201,7 +201,54 @@ public class HomeController : Controller
             await _context.Complectations.AddRangeAsync(complectations);
             await _context.SaveChangesAsync();
         }
-        
+
+        if (!_context.Groups.Any())
+        {
+            string addressSelectGroupParts = "https://www.ilcats.ru/toyota/?function=getGroups&market=EU&model=281220&modification=CV10L-UEMEXW&complectation=001&group=1&language=en";
+            IDocument documentGroup = await context.OpenAsync(addressSelectGroupParts);
+           
+            string className = "name";
+            var groupElements = documentGroup.GetElementsByClassName(className);
+
+            ////////
+            //get menu item
+            string mainMenuSelector = "MainMenu";
+            var mainMenuElement = documentGroup.GetElementById(mainMenuSelector);
+
+            if (mainMenuElement != null)
+            {
+
+                var lastChild = mainMenuElement.Children.LastOrDefault();
+                var nameComplectation = lastChild.TextContent[(lastChild.TextContent.IndexOf(':') + 2)..];
+
+                var CurrentComplectation = _context.Complectations.FirstOrDefault(x => x.Name == nameComplectation);
+                if (CurrentComplectation != null)
+                {
+                    List<Group> groups = new();
+                    foreach (var item in groupElements)
+                    {
+                        Group group = new()
+                        {
+                            Name = item.TextContent,
+                            ComplectationId = CurrentComplectation.Id
+                        };
+
+                        groups.Add(group);
+                    }
+                    await _context.Groups.AddRangeAsync(groups);
+                    _ = await _context.SaveChangesAsync();
+                }
+               
+            }
+            /////////
+
+            
+
+            
+            
+            Console.Write("");
+
+        }
 
         return View();
     }

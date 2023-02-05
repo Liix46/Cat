@@ -8,11 +8,14 @@ namespace Cats.Models.Contexts
 	{
         public DbSet<Model> Models { get; set; } = null!;
         public DbSet<Complectation> Complectations { get; set; } = null!;
+        public DbSet<Group> Groups { get; set; } = null!;
+        public DbSet<Subgroup> Subgroups { get; set; } = null!;
+        public DbSet<Part> Parts { get; set; } = null!;
 
         public Context(DbContextOptions<Context> options) : base(options)
         {
-            //Database.EnsureDeleted();
-            //Database.EnsureCreated();
+            Database.EnsureDeleted();
+            Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

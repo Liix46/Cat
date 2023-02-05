@@ -7,12 +7,16 @@ namespace Cats.Models
 	{
         [Column("Id")]
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        int Id { get; set; }
+        public int Id { get; set; }
 
         [StringLength(20, MinimumLength = 0)]
-        string? Name { get; set; }
+        public string? Name { get; set; }
 
 		public ICollection<Subgroup>? Subgroups { get; set; }
+
+        [ForeignKey("ComplectId")]
+        public int ComplectationId { get; set; }
+        public Complectation? Complectation { get; set; }
 	}
 }
 
