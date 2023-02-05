@@ -45,7 +45,7 @@ namespace Cats.Models
         public int ModelId { get; set; }
         public Model? Model { get; set; }
 
-
+        public ICollection<Group>? Groups { get; set; }
     }
 }
 

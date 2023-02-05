@@ -26,6 +26,9 @@ public class HomeController : Controller
         AngleSharp.IConfiguration config = Configuration.Default.WithDefaultLoader();
         IBrowsingContext context = BrowsingContext.New(config);
 
+        string mainMenuSelector = "MainMenu";
+        IElement? mainMenuElement = null;
+
         if (!_context.Models.Any())
         {
             
@@ -114,8 +117,7 @@ public class HomeController : Controller
             var complactationList = htmlElement.Children.Skip(1);
 
             //get menu item
-            string mainMenuSelector = "#MainMenu";
-            var mainMenuElement = documentComplectation.QuerySelectorAll(mainMenuSelector).FirstOrDefault();
+            mainMenuElement = documentComplectation.GetElementById(mainMenuSelector);
             var currentModel = new Model();
             if (mainMenuElement != null)
             {
@@ -210,10 +212,8 @@ public class HomeController : Controller
             string className = "name";
             var groupElements = documentGroup.GetElementsByClassName(className);
 
-            ////////
             //get menu item
-            string mainMenuSelector = "MainMenu";
-            var mainMenuElement = documentGroup.GetElementById(mainMenuSelector);
+            mainMenuElement = documentGroup.GetElementById(mainMenuSelector);
 
             if (mainMenuElement != null)
             {
@@ -240,13 +240,58 @@ public class HomeController : Controller
                 }
                
             }
-            /////////
 
-            
+            if (!_context.Subgroups.Any())
+            {
 
-            
-            
-            Console.Write("");
+
+                string addressSubGroups = "https://www.ilcats.ru/toyota/?function=getSubGroups&market=EU&model=281220&modification=CV10L-UEMEXW&complectation=001&group=1&language=en";
+                IDocument documentSubGroup = await context.OpenAsync(addressSubGroups);
+
+
+
+                string subGroupsClassName = "name";
+                var subGroupElements = documentSubGroup.GetElementsByClassName(subGroupsClassName);
+
+                //get menu item
+                
+                mainMenuElement = documentSubGroup.GetElementById(mainMenuSelector);
+
+                if (mainMenuElement != null)
+                {
+                    IElement currentComplectation = mainMenuElement.Children[4];
+                    string textCompectation = currentComplectation.TextContent[(currentComplectation.TextContent.IndexOf(':') + 2)..];
+
+                    var currentGroup = mainMenuElement.Children.LastOrDefault();
+                    string textGroup = currentGroup.TextContent[(currentGroup.TextContent.IndexOf(':') + 2)..];
+
+                    var tmpComplectation = _context.Complectations.FirstOrDefault(x => x.Name.ToLower().Equals(textCompectation.ToLower()));
+
+                    var tmpGroups = _context.Groups.Where(x => x.Name.ToLower().Equals(textGroup.ToLower()));
+
+                    var tmpGroup = tmpGroups.FirstOrDefault(x => x.ComplectationId == tmpComplectation.Id);
+                    if (tmpGroup != null)
+                    {
+                        List<Subgroup> subgroups = new();
+                        foreach (var item in subGroupElements)
+                        {
+                            Subgroup subgroup = new()
+                            {
+                                Name = item.TextContent,
+                                GroupId = tmpGroup.Id
+                            };
+
+                            subgroups.Add(subgroup);
+                        }
+
+                        await _context.Subgroups.AddRangeAsync(subgroups);
+                        _ = await _context.SaveChangesAsync();
+                    }
+
+                }
+
+               
+            }
 
         }
 
