@@ -29,9 +29,10 @@ public class HomeController : Controller
         string mainMenuSelector = "MainMenu";
         IElement? mainMenuElement = null;
 
+        //check - presence of elements && if there is no data to download - fill in
         if (!_context.Models.Any())
         {
-            
+            // adress models
             string address = "https://www.ilcats.ru/toyota/?function=getModels&language=en&market=EU";
 
             // get page with models
@@ -45,9 +46,11 @@ public class HomeController : Controller
             string menuSelector = "#MainMenu li";
             var menu = document.QuerySelectorAll(menuSelector);
 
+            //get catalog is mark car
             var catalog = menu.FirstOrDefault(x => x.TextContent.Contains("Catalog:"));
             var catalogText = catalog.TextContent[(catalog.TextContent.IndexOf(':') + 2)..];
 
+            // get region is the continent where the machine is delivered
             var region = menu.FirstOrDefault(x => x.TextContent.Contains("Region:"));
             var regionText = region.TextContent[(region.TextContent.IndexOf(':') + 2)..];
 
@@ -79,6 +82,7 @@ public class HomeController : Controller
                         {
                             model.Name = header.TextContent;
                         }
+                        //find field by classname
                         var id = element.Children.FirstOrDefault(x => x.ClassName == "id");
                         if (id != null)
                         {
@@ -105,7 +109,7 @@ public class HomeController : Controller
             await _context.SaveChangesAsync();
         }
 
-        //check - presence of elements
+        //check - presence of elements && if there is no data to download - fill in
         if (!_context.Complectations.Any())
         {
             string addressComplectation = "https://www.ilcats.ru/toyota/?function=getComplectations&market=EU&model=281220&startDate=198210&endDate=198610&language=en";
@@ -204,6 +208,7 @@ public class HomeController : Controller
             await _context.SaveChangesAsync();
         }
 
+        //check - presence of elements && if there is no data to download - fill in
         if (!_context.Groups.Any())
         {
             string addressSelectGroupParts = "https://www.ilcats.ru/toyota/?function=getGroups&market=EU&model=281220&modification=CV10L-UEMEXW&complectation=001&group=1&language=en";
@@ -241,10 +246,9 @@ public class HomeController : Controller
                
             }
 
-            
-
         }
 
+        //check - presence of elements && if there is no data to download - fill in
         if (!_context.Subgroups.Any())
         {
 
@@ -297,6 +301,7 @@ public class HomeController : Controller
 
         }
 
+        //check - presence of elements && if there is no data to download - fill in
         if (!_context.Parts.Any())
         {
             string partsAdress = "https://www.ilcats.ru/toyota/?complectation=001&function=getParts&group=1&language=en&market=EU&model=281220&modification=CV10L-UEMEXW&subgroup=0901";
