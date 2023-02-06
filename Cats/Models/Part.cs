@@ -10,7 +10,7 @@ namespace Cats.Models
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [StringLength(15)]
+        [StringLength(12)]
         public string? Code { get; set; }
 
 		public int Count { get; set; }
@@ -24,7 +24,7 @@ namespace Cats.Models
         public string? Tree { get; set; }
 
         [StringLength(20)]
-        public string? Data { get; set; }
+        public string? Date { get; set; }
 
         [StringLength(100)]
         public string? LinkPrefTable { get; set; }

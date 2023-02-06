@@ -241,60 +241,225 @@ public class HomeController : Controller
                
             }
 
-            if (!_context.Subgroups.Any())
-            {
-
-
-                string addressSubGroups = "https://www.ilcats.ru/toyota/?function=getSubGroups&market=EU&model=281220&modification=CV10L-UEMEXW&complectation=001&group=1&language=en";
-                IDocument documentSubGroup = await context.OpenAsync(addressSubGroups);
-
-
-
-                string subGroupsClassName = "name";
-                var subGroupElements = documentSubGroup.GetElementsByClassName(subGroupsClassName);
-
-                //get menu item
-                
-                mainMenuElement = documentSubGroup.GetElementById(mainMenuSelector);
-
-                if (mainMenuElement != null)
-                {
-                    IElement currentComplectation = mainMenuElement.Children[4];
-                    string textCompectation = currentComplectation.TextContent[(currentComplectation.TextContent.IndexOf(':') + 2)..];
-
-                    var currentGroup = mainMenuElement.Children.LastOrDefault();
-                    string textGroup = currentGroup.TextContent[(currentGroup.TextContent.IndexOf(':') + 2)..];
-
-                    var tmpComplectation = _context.Complectations.FirstOrDefault(x => x.Name.ToLower().Equals(textCompectation.ToLower()));
-
-                    var tmpGroups = _context.Groups.Where(x => x.Name.ToLower().Equals(textGroup.ToLower()));
-
-                    var tmpGroup = tmpGroups.FirstOrDefault(x => x.ComplectationId == tmpComplectation.Id);
-                    if (tmpGroup != null)
-                    {
-                        List<Subgroup> subgroups = new();
-                        foreach (var item in subGroupElements)
-                        {
-                            Subgroup subgroup = new()
-                            {
-                                Name = item.TextContent,
-                                GroupId = tmpGroup.Id
-                            };
-
-                            subgroups.Add(subgroup);
-                        }
-
-                        await _context.Subgroups.AddRangeAsync(subgroups);
-                        _ = await _context.SaveChangesAsync();
-                    }
-
-                }
-
-               
-            }
+            
 
         }
 
+        if (!_context.Subgroups.Any())
+        {
+
+
+            string addressSubGroups = "https://www.ilcats.ru/toyota/?function=getSubGroups&market=EU&model=281220&modification=CV10L-UEMEXW&complectation=001&group=1&language=en";
+            IDocument documentSubGroup = await context.OpenAsync(addressSubGroups);
+
+
+
+            string subGroupsClassName = "name";
+            var subGroupElements = documentSubGroup.GetElementsByClassName(subGroupsClassName);
+
+            //get menu item
+
+            mainMenuElement = documentSubGroup.GetElementById(mainMenuSelector);
+
+            if (mainMenuElement != null)
+            {
+                IElement currentComplectation = mainMenuElement.Children[4];
+                string textCompectation = currentComplectation.TextContent[(currentComplectation.TextContent.IndexOf(':') + 2)..];
+
+                var currentGroup = mainMenuElement.Children.LastOrDefault();
+                string textGroup = currentGroup.TextContent[(currentGroup.TextContent.IndexOf(':') + 2)..];
+
+                var tmpComplectation = _context.Complectations.FirstOrDefault(x => x.Name.ToLower().Equals(textCompectation.ToLower()));
+
+                var tmpGroups = _context.Groups.Where(x => x.Name.ToLower().Equals(textGroup.ToLower()));
+
+                var tmpGroup = tmpGroups.FirstOrDefault(x => x.ComplectationId == tmpComplectation.Id);
+                if (tmpGroup != null)
+                {
+                    List<Subgroup> subgroups = new();
+                    foreach (var item in subGroupElements)
+                    {
+                        Subgroup subgroup = new()
+                        {
+                            Name = item.TextContent,
+                            GroupId = tmpGroup.Id
+                        };
+
+                        subgroups.Add(subgroup);
+                    }
+
+                    await _context.Subgroups.AddRangeAsync(subgroups);
+                    _ = await _context.SaveChangesAsync();
+                }
+
+            }
+
+
+        }
+
+        if (!_context.Parts.Any())
+        {
+            string partsAdress = "https://www.ilcats.ru/toyota/?complectation=001&function=getParts&group=1&language=en&market=EU&model=281220&modification=CV10L-UEMEXW&subgroup=0901";
+            IDocument partsDocument = await context.OpenAsync(partsAdress);
+
+            string tagName = "table";
+            var partsTable = partsDocument.GetElementsByTagName(tagName).FirstOrDefault();
+            if (partsTable != null)
+            {
+                var partsBody = partsTable.Children.FirstOrDefault();
+                if (partsBody != null)
+                {
+                    var childrenBody = partsBody.Children.Skip(1);
+                    string tree = "";
+                    string treeCode = "";
+                    Subgroup? subgroup = null;
+
+                    List<Part> parts = new();
+
+
+                    mainMenuElement = partsDocument.GetElementById(mainMenuSelector);
+
+                    if (mainMenuElement != null)
+                    {
+                        var subGroupElement = mainMenuElement.Children.LastOrDefault();
+                        if (subGroupElement != null)
+                        {
+                            var subGroupText = subGroupElement.TextContent.Substring(subGroupElement.TextContent.IndexOf(':') + 2);
+                            if (subGroupText.EndsWith("..."))
+                            {
+                                subGroupText = subGroupText.Substring(0, subGroupText.Length - 3);
+                            }
+
+                            var subGroups = _context.Subgroups.Where(x => x.Name.StartsWith(subGroupText)).ToList();
+                            if (subGroups != null)
+                            {
+                                var groupElement = mainMenuElement.Children.FirstOrDefault(x => x.TextContent.StartsWith("Group:"));
+
+                                if (groupElement != null)
+                                {
+                                    var groupText = groupElement.TextContent.Substring(groupElement.TextContent.IndexOf(':') + 2);
+
+                                    var groups = _context.Groups.Where(x => x.Name == groupText);
+
+                                    var complectationElement = mainMenuElement.Children.FirstOrDefault(x => x.TextContent.StartsWith("Complectation:"));
+
+                                    if (complectationElement != null)
+                                    {
+                                        var complactationText = complectationElement.TextContent.Substring(complectationElement.TextContent.IndexOf(':') + 2).ToUpper();
+
+                                        var complect = _context.Complectations.FirstOrDefault(x => x.Name.ToUpper().Equals(complactationText));
+                                        if (complect != null)
+                                        {
+                                            var group = groups.FirstOrDefault(x => x.ComplectationId == complect.Id);
+                                            if (group != null)
+                                            {
+                                                subgroup = subGroups.FirstOrDefault(x => x.GroupId == group.Id);
+                                            }
+                                            
+
+                                        }
+
+                                    }
+
+                                }
+
+
+                            }
+                        }
+                    }
+                    ///
+
+                    foreach (var child in childrenBody)
+                    {
+                        if (child.Children.Length == 1)
+                        {
+                            var treeText = child.TextContent;
+                            tree = treeText[(treeText.IndexOf(' ') + 1)..];
+                            treeCode = treeText[..treeText.IndexOf(' ')];
+                        }
+                        else
+                        {
+                            Part part = new()
+                            {
+                                Tree = tree,
+                                TreeCode = treeCode
+                            };
+
+                            var number = child.Children.FirstOrDefault(x => x.Children.FirstOrDefault().ClassName == "number");
+                            if (number != null)
+                            {
+                                if (number.TextContent.Contains("Replaced", StringComparison.CurrentCulture))
+                                {
+                                    part.Code = number.TextContent.Substring(0, number.TextContent.IndexOf("Replaced"));
+                                }
+                                else
+                                {
+                                    part.Code = number.TextContent;
+                                }
+                                
+
+                            }
+
+                            var replaceNumber = child.Children.FirstOrDefault(x => x.Children.LastOrDefault().ClassName == "replaceNumber");
+
+                            if (replaceNumber != null)
+                            {
+
+                                var replaceElement = replaceNumber.Children.LastOrDefault();
+                                if (replaceElement != null)
+                                {
+                                    AngleSharp.Html.Dom.IHtmlAnchorElement? linkElement = (AngleSharp.Html.Dom.IHtmlAnchorElement?)replaceElement.Children.FirstOrDefault(x => x.TagName == "A");
+                                    if (linkElement != null)
+                                    {
+                                        part.LinkPrefTable = linkElement.Href;
+                                    }
+                                }
+                            }
+
+                            var countElement = child.Children.FirstOrDefault(x => x.Children.FirstOrDefault().ClassName == "count");
+
+                            if (countElement != null)
+                            {
+                                bool success = int.TryParse(countElement.TextContent, out int x);
+                                if (success)
+                                {
+                                    part.Count = int.Parse(countElement.TextContent);
+                                }
+
+                            }
+
+                            var dateRangeElement = child.Children.FirstOrDefault(x => x.Children.FirstOrDefault().ClassName == "dateRange");
+
+                            if (dateRangeElement != null)
+                            {
+                                part.Date = dateRangeElement.TextContent;
+                            }
+
+                            var usageElement = child.Children.FirstOrDefault(x => x.Children.FirstOrDefault().ClassName == "usage");
+                            if (usageElement != null)
+                            {
+                                part.Info = usageElement.TextContent;
+                            }
+
+
+
+                            if (subgroup != null)
+                            {
+                                part.SubgroupId = subgroup.Id;
+                            }
+
+                            parts.Add(part);
+                        }
+                    }
+
+                    await _context.Parts.AddRangeAsync(parts);
+                    await _context.SaveChangesAsync();
+                }
+                
+            }
+            
+
+        }
         return View();
     }
 
